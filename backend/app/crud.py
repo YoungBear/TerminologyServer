@@ -3,14 +3,42 @@ from sqlalchemy import or_
 from app.models import Term, TermName
 
 
-def create_term(db: Session, data: dict) -> Term:
+def _term_to_flat(term: Term) -> dict:
+    flat = {
+        "id": term.id,
+        "domain": term.domain,
+        "status": term.status,
+        "name_zh": "", "abbr_zh": "", "def_zh": "",
+        "name_en": "", "abbr_en": "", "def_en": "",
+        "created_at": term.created_at,
+        "updated_at": term.updated_at,
+    }
+    for n in term.names:
+        if n.language == "zh" and n.name_type == "full_name":
+            flat["name_zh"] = n.name
+            flat["def_zh"] = n.definition or ""
+        elif n.language == "zh" and n.name_type == "abbreviation":
+            flat["abbr_zh"] = n.name
+        elif n.language == "en" and n.name_type == "full_name":
+            flat["name_en"] = n.name
+            flat["def_en"] = n.definition or ""
+        elif n.language == "en" and n.name_type == "abbreviation":
+            flat["abbr_en"] = n.name
+    return flat
+
+
+def create_term(db: Session, data: dict) -> dict:
     term = Term(domain=data["domain"], status=data["status"])
-    for name_data in data["names"]:
-        term.names.append(TermName(**name_data))
+    term.names = [
+        TermName(language="zh", name_type="full_name", name=data["name_zh"], definition=data.get("def_zh")),
+        TermName(language="zh", name_type="abbreviation", name=data["abbr_zh"]),
+        TermName(language="en", name_type="full_name", name=data["name_en"], definition=data.get("def_en")),
+        TermName(language="en", name_type="abbreviation", name=data["abbr_en"]),
+    ]
     db.add(term)
     db.commit()
     db.refresh(term)
-    return term
+    return _term_to_flat(term)
 
 
 def get_terms(
@@ -31,14 +59,22 @@ def get_terms(
 
     total = query.count()
     items = query.order_by(Term.id.desc()).offset((page - 1) * page_size).limit(page_size).all()
-    return {"total": total, "page": page, "page_size": page_size, "items": items}
+    return {
+        "total": total,
+        "page": page,
+        "page_size": page_size,
+        "items": [_term_to_flat(t) for t in items],
+    }
 
 
-def get_term(db: Session, term_id: int) -> Term | None:
-    return db.query(Term).filter(Term.id == term_id).first()
+def get_term(db: Session, term_id: int) -> dict | None:
+    term = db.query(Term).filter(Term.id == term_id).first()
+    if not term:
+        return None
+    return _term_to_flat(term)
 
 
-def update_term(db: Session, term_id: int, data: dict) -> Term | None:
+def update_term(db: Session, term_id: int, data: dict) -> dict | None:
     term = db.query(Term).filter(Term.id == term_id).first()
     if not term:
         return None
@@ -46,41 +82,21 @@ def update_term(db: Session, term_id: int, data: dict) -> Term | None:
     term.domain = data["domain"]
     term.status = data["status"]
 
-    existing_ids = {n.id for n in term.names}
-    request_ids = {n["id"] for n in data["names"] if n.get("id")}
-    foreign_ids = request_ids - existing_ids
-    if foreign_ids:
-        raise ValueError(f"Name IDs {foreign_ids} do not belong to term {term_id}")
-    ids_to_remove = existing_ids - request_ids
-
-    # Remove deleted names first and flush to avoid UNIQUE constraint violations
-    # when an updated name reuses a (language, name_type) from a deleted name.
-    for n in list(term.names):
-        if n.id in ids_to_remove:
-            term.names.remove(n)
-    if ids_to_remove:
-        db.flush()
-
-    for name_data in data["names"]:
-        if name_data.get("id"):
-            for n in term.names:
-                if n.id == name_data["id"]:
-                    n.language = name_data["language"]
-                    n.name_type = name_data["name_type"]
-                    n.name = name_data["name"]
-                    n.definition = name_data.get("definition")
-                    break
-        else:
-            term.names.append(TermName(
-                language=name_data["language"],
-                name_type=name_data["name_type"],
-                name=name_data["name"],
-                definition=name_data.get("definition"),
-            ))
+    for n in term.names:
+        if n.language == "zh" and n.name_type == "full_name":
+            n.name = data["name_zh"]
+            n.definition = data.get("def_zh")
+        elif n.language == "zh" and n.name_type == "abbreviation":
+            n.name = data["abbr_zh"]
+        elif n.language == "en" and n.name_type == "full_name":
+            n.name = data["name_en"]
+            n.definition = data.get("def_en")
+        elif n.language == "en" and n.name_type == "abbreviation":
+            n.name = data["abbr_en"]
 
     db.commit()
     db.refresh(term)
-    return term
+    return _term_to_flat(term)
 
 
 def delete_term(db: Session, term_id: int) -> bool:
@@ -108,4 +124,9 @@ def search_terms(
 
     total = query.count()
     items = query.order_by(Term.id.desc()).offset((page - 1) * page_size).limit(page_size).all()
-    return {"total": total, "page": page, "page_size": page_size, "items": items}
+    return {
+        "total": total,
+        "page": page,
+        "page_size": page_size,
+        "items": [_term_to_flat(t) for t in items],
+    }

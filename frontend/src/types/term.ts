@@ -1,17 +1,13 @@
-export interface TermName {
-  id?: number;
-  term_id?: number;
-  language: string;
-  name_type: string;
-  name: string;
-  definition: string | null;
-}
-
 export interface Term {
   id: number;
   domain: string;
   status: string;
-  names: TermName[];
+  name_zh: string;
+  abbr_zh: string;
+  def_zh: string;
+  name_en: string;
+  abbr_en: string;
+  def_en: string;
   created_at: string;
   updated_at: string;
 }
@@ -19,14 +15,15 @@ export interface Term {
 export interface TermCreateRequest {
   domain: string;
   status: string;
-  names: Omit<TermName, 'id' | 'term_id'>[]; // Must have at least 1
+  name_zh: string;
+  abbr_zh: string;
+  def_zh: string;
+  name_en: string;
+  abbr_en: string;
+  def_en: string;
 }
 
-export interface TermUpdateRequest {
-  domain: string;
-  status: string;
-  names: (Omit<TermName, 'term_id'> & { id?: number })[];
-}
+export type TermUpdateRequest = TermCreateRequest;
 
 export interface TermListResponse {
   total: number;
@@ -42,12 +39,6 @@ export interface TermQueryParams {
   status?: string;
   language?: string;
 }
-
-export const NAME_TYPE_LABELS: Record<string, string> = {
-  full_name: '全称',
-  abbreviation: '简写',
-  synonym: '同义词',
-};
 
 export const STATUS_LABELS: Record<string, string> = {
   draft: '草稿',

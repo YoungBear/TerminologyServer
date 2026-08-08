@@ -1,47 +1,40 @@
-from pydantic import BaseModel, Field
-from typing import Optional, List, Literal
+from pydantic import BaseModel
+from typing import List, Literal
 from datetime import datetime
-
-
-class TermNameBase(BaseModel):
-    language: str
-    name_type: Literal["full_name", "abbreviation", "synonym"]
-    name: str
-    definition: Optional[str] = None
-
-
-class TermNameCreate(TermNameBase):
-    pass
-
-
-class TermNameUpdate(TermNameBase):
-    id: Optional[int] = None
-
-
-class TermNameResponse(TermNameBase):
-    id: int
-    term_id: int
-
-    model_config = {"from_attributes": True}
 
 
 class TermCreate(BaseModel):
     domain: str
     status: Literal["draft", "approved", "deprecated"] = "draft"
-    names: List[TermNameCreate] = Field(..., min_length=1)
+    name_zh: str
+    abbr_zh: str
+    def_zh: str
+    name_en: str
+    abbr_en: str
+    def_en: str
 
 
 class TermUpdate(BaseModel):
     domain: str
     status: Literal["draft", "approved", "deprecated"]
-    names: List[TermNameUpdate] = Field(..., min_length=1)
+    name_zh: str
+    abbr_zh: str
+    def_zh: str
+    name_en: str
+    abbr_en: str
+    def_en: str
 
 
 class TermResponse(BaseModel):
     id: int
     domain: str
     status: str
-    names: List[TermNameResponse]
+    name_zh: str
+    abbr_zh: str
+    def_zh: str
+    name_en: str
+    abbr_en: str
+    def_en: str
     created_at: datetime
     updated_at: datetime
 

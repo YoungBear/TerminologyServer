@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Table, Input, Select, Space, Button, Popconfirm, App, Tag } from 'antd';
+import { Table, Input, Select, Space, Button, Popconfirm, App, Tag, Tooltip } from 'antd';
 import { PlusOutlined, SearchOutlined } from '@ant-design/icons';
 import type { Term, TermQueryParams } from '../types/term';
-import { NAME_TYPE_LABELS, STATUS_LABELS } from '../types/term';
+import { STATUS_LABELS } from '../types/term';
 import { getTerms, deleteTerm, searchTerms } from '../api/terms';
 import type { ColumnsType } from 'antd/es/table';
 
@@ -56,31 +56,27 @@ export default function TermTable({ onEdit, onCreate, refreshKey }: TermTablePro
   };
 
   const columns: ColumnsType<Term> = [
-    { title: 'ID', dataIndex: 'id', width: 60 },
-    { title: '领域', dataIndex: 'domain', width: 100 },
+    { title: 'ID', dataIndex: 'id', width: 50 },
+    { title: '领域', dataIndex: 'domain', width: 80 },
     {
-      title: '状态', dataIndex: 'status', width: 90,
+      title: '状态', dataIndex: 'status', width: 80,
       render: (s: string) => {
         const colors: Record<string, string> = { draft: 'blue', approved: 'green', deprecated: 'orange' };
         return <Tag color={colors[s] || 'default'}>{STATUS_LABELS[s] || s}</Tag>;
       },
     },
     {
-      title: '名称', dataIndex: 'names', width: 300,
-      render: (names: Term['names']) => (
-        <div>
-          {names.map((n) => (
-            <div key={n.id || `${n.language}-${n.name_type}`} style={{ fontSize: 13, marginBottom: 2 }}>
-              <Tag color="cyan" style={{ marginRight: 4 }}>{n.language}</Tag>
-              <Tag>{NAME_TYPE_LABELS[n.name_type] || n.name_type}</Tag>
-              {n.name}
-            </div>
-          ))}
-        </div>
-      ),
+      title: '中文全称', dataIndex: 'name_zh', width: 160, ellipsis: true,
+      render: (v: string) => <Tooltip title={v}>{v}</Tooltip>,
     },
+    { title: '中文简写', dataIndex: 'abbr_zh', width: 90 },
     {
-      title: '操作', width: 140,
+      title: '英文全称', dataIndex: 'name_en', width: 180, ellipsis: true,
+      render: (v: string) => <Tooltip title={v}>{v}</Tooltip>,
+    },
+    { title: '英文简写', dataIndex: 'abbr_en', width: 90 },
+    {
+      title: '操作', width: 140, fixed: 'right',
       render: (_, record) => (
         <Space>
           <Button type="link" size="small" onClick={() => onEdit(record)}>编辑</Button>
@@ -104,7 +100,7 @@ export default function TermTable({ onEdit, onCreate, refreshKey }: TermTablePro
             onSearch={(v) => { setSearchText(v); setPage(1); }}
           />
           <Select
-            placeholder="领域" allowClear style={{ width: 120 }}
+            placeholder="领域" allowClear style={{ width: 110 }}
             onChange={(v) => { setFilters((f) => ({ ...f, domain: v })); setPage(1); }}
             options={[
               { value: '医学', label: '医学' },
@@ -114,7 +110,7 @@ export default function TermTable({ onEdit, onCreate, refreshKey }: TermTablePro
             ]}
           />
           <Select
-            placeholder="状态" allowClear style={{ width: 120 }}
+            placeholder="状态" allowClear style={{ width: 110 }}
             onChange={(v) => { setFilters((f) => ({ ...f, status: v })); setPage(1); }}
             options={[
               { value: 'draft', label: '草稿' },
@@ -123,13 +119,11 @@ export default function TermTable({ onEdit, onCreate, refreshKey }: TermTablePro
             ]}
           />
           <Select
-            placeholder="语言" allowClear style={{ width: 120 }}
+            placeholder="语言" allowClear style={{ width: 110 }}
             onChange={(v) => { setFilters((f) => ({ ...f, language: v })); setPage(1); }}
             options={[
               { value: 'zh', label: '中文' },
               { value: 'en', label: 'English' },
-              { value: 'ja', label: '日本語' },
-              { value: 'ko', label: '한국어' },
             ]}
           />
         </Space>
@@ -140,6 +134,7 @@ export default function TermTable({ onEdit, onCreate, refreshKey }: TermTablePro
         dataSource={terms}
         rowKey="id"
         loading={loading}
+        scroll={{ x: 900 }}
         pagination={{
           current: page,
           pageSize,

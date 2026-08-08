@@ -63,13 +63,7 @@ def get_term_endpoint(term_id: int, db: Session = Depends(get_db)):
 
 @app.put("/api/terms/{term_id}", response_model=TermResponse)
 def update_term_endpoint(term_id: int, term_data: TermUpdate, db: Session = Depends(get_db)):
-    try:
-        term = update_term(db, term_id, term_data.model_dump())
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-    except IntegrityError:
-        db.rollback()
-        raise HTTPException(status_code=422, detail="Duplicate name: (language, name_type) must be unique per term")
+    term = update_term(db, term_id, term_data.model_dump())
     if not term:
         raise HTTPException(status_code=404, detail="Term not found")
     return term

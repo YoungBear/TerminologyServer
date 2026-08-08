@@ -31,6 +31,18 @@ npm run dev
 
 前端运行在 `http://localhost:5173`，打开浏览器即可使用。
 
+## PyCharm 配置
+
+1. 用 PyCharm 打开项目根目录 `TerminologyServer/`
+2. 设置 Python 解释器：`File` → `Settings` → `Project: TerminologyServer` → `Python Interpreter` → 选择 `backend/venv/bin/python`
+3. 标记 Sources Root：右键 `backend` 目录 → `Mark Directory as` → `Sources Root`
+4. 标记 Templates Root：右键 `backend/app` 目录 → `Mark Directory as` → `Sources Root`
+5. 后端运行配置：`Run` → `Edit Configurations` → 添加 `Python`，设置：
+   - Module name: `uvicorn`
+   - Parameters: `app.main:app --host 0.0.0.0 --port 8000 --reload`
+   - Working directory: `backend/`
+6. 前端运行：打开 Terminal，`cd frontend && npm run dev`
+
 ## 功能
 
 - 创建术语（支持多语言全称、简写、同义词）

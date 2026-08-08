@@ -65,16 +65,16 @@ export default function TermTable({ onEdit, onCreate, refreshKey }: TermTablePro
         return <Tag color={colors[s] || 'default'}>{STATUS_LABELS[s] || s}</Tag>;
       },
     },
+    { title: '中文简写', dataIndex: 'abbr_zh', width: 90 },
     {
       title: '中文全称', dataIndex: 'name_zh', width: 160, ellipsis: true,
       render: (v: string) => <Tooltip title={v}>{v}</Tooltip>,
     },
-    { title: '中文简写', dataIndex: 'abbr_zh', width: 90 },
+    { title: '英文简写', dataIndex: 'abbr_en', width: 90 },
     {
       title: '英文全称', dataIndex: 'name_en', width: 180, ellipsis: true,
       render: (v: string) => <Tooltip title={v}>{v}</Tooltip>,
     },
-    { title: '英文简写', dataIndex: 'abbr_en', width: 90 },
     {
       title: '操作', width: 140, fixed: 'right',
       render: (_, record) => (

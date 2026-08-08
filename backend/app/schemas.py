@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import List, Literal
+from typing import List, Literal, Optional
 from datetime import datetime
 
 
@@ -8,10 +8,10 @@ class TermCreate(BaseModel):
     status: Literal["draft", "approved", "deprecated"] = "draft"
     name_zh: str
     abbr_zh: str
-    def_zh: str
+    def_zh: Optional[str] = None
     name_en: str
     abbr_en: str
-    def_en: str
+    def_en: Optional[str] = None
 
 
 class TermUpdate(BaseModel):
@@ -19,10 +19,10 @@ class TermUpdate(BaseModel):
     status: Literal["draft", "approved", "deprecated"]
     name_zh: str
     abbr_zh: str
-    def_zh: str
+    def_zh: Optional[str] = None
     name_en: str
     abbr_en: str
-    def_en: str
+    def_en: Optional[str] = None
 
 
 class TermResponse(BaseModel):
@@ -31,10 +31,10 @@ class TermResponse(BaseModel):
     status: str
     name_zh: str
     abbr_zh: str
-    def_zh: str
+    def_zh: Optional[str] = None
     name_en: str
     abbr_en: str
-    def_en: str
+    def_en: Optional[str] = None
     created_at: datetime
     updated_at: datetime
 

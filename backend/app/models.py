@@ -1,5 +1,5 @@
 import enum
-from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey
+from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey, UniqueConstraint
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app.database import Base
@@ -40,3 +40,5 @@ class TermName(Base):
     definition = Column(Text, nullable=True)
 
     term = relationship("Term", back_populates="names")
+
+    __table_args__ = (UniqueConstraint("term_id", "language", "name_type", name="uq_term_name_lang_type"),)

@@ -1,5 +1,6 @@
 from fastapi import FastAPI, Depends, Query, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from typing import Optional
 
@@ -22,7 +23,11 @@ app.add_middleware(
 
 @app.post("/api/terms", response_model=TermResponse, status_code=201)
 def create_term_endpoint(term: TermCreate, db: Session = Depends(get_db)):
-    return create_term(db, term.model_dump())
+    try:
+        return create_term(db, term.model_dump())
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(status_code=422, detail="Duplicate name: (language, name_type) must be unique per term")
 
 
 @app.get("/api/terms", response_model=TermListResponse)
@@ -58,7 +63,13 @@ def get_term_endpoint(term_id: int, db: Session = Depends(get_db)):
 
 @app.put("/api/terms/{term_id}", response_model=TermResponse)
 def update_term_endpoint(term_id: int, term_data: TermUpdate, db: Session = Depends(get_db)):
-    term = update_term(db, term_id, term_data.model_dump())
+    try:
+        term = update_term(db, term_id, term_data.model_dump())
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(status_code=422, detail="Duplicate name: (language, name_type) must be unique per term")
     if not term:
         raise HTTPException(status_code=404, detail="Term not found")
     return term

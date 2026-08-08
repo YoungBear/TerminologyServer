@@ -1,11 +1,11 @@
 from pydantic import BaseModel, Field
-from typing import Optional, List
+from typing import Optional, List, Literal
 from datetime import datetime
 
 
 class TermNameBase(BaseModel):
     language: str
-    name_type: str
+    name_type: Literal["full_name", "abbreviation", "synonym"]
     name: str
     definition: Optional[str] = None
 
@@ -27,14 +27,14 @@ class TermNameResponse(TermNameBase):
 
 class TermCreate(BaseModel):
     domain: str
-    status: str = "draft"
+    status: Literal["draft", "approved", "deprecated"] = "draft"
     names: List[TermNameCreate] = Field(..., min_length=1)
 
 
 class TermUpdate(BaseModel):
     domain: str
-    status: str
-    names: List[TermNameUpdate]
+    status: Literal["draft", "approved", "deprecated"]
+    names: List[TermNameUpdate] = Field(..., min_length=1)
 
 
 class TermResponse(BaseModel):

@@ -48,6 +48,9 @@ def update_term(db: Session, term_id: int, data: dict) -> Term | None:
 
     existing_ids = {n.id for n in term.names}
     request_ids = {n["id"] for n in data["names"] if n.get("id")}
+    foreign_ids = request_ids - existing_ids
+    if foreign_ids:
+        raise ValueError(f"Name IDs {foreign_ids} do not belong to term {term_id}")
     ids_to_remove = existing_ids - request_ids
 
     term.names = [n for n in term.names if n.id not in ids_to_remove]

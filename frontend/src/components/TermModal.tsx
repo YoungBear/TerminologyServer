@@ -38,8 +38,11 @@ export default function TermModal({ open, term, onClose, onSuccess }: TermModalP
       }
       onSuccess();
       onClose();
-    } catch {
-      message.error('操作失败');
+    } catch (err) {
+      const detail = (err && typeof err === 'object' && 'response' in err)
+        ? (err as { response?: { data?: { detail?: string } } }).response?.data?.detail
+        : undefined;
+      message.error(detail || '操作失败');
     }
   };
 

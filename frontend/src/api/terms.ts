@@ -36,11 +36,13 @@ export async function deleteTerm(id: number): Promise<void> {
 export async function searchTerms(
   q: string,
   language?: string,
+  domain?: string,
+  status?: string,
   page = 1,
   page_size = 20,
 ): Promise<TermListResponse> {
   const res = await api.get<TermListResponse>('/terms/search', {
-    params: { q, language, page, page_size },
+    params: { q, language, domain, status, page, page_size },
   });
   return res.data;
 }

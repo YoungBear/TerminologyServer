@@ -46,11 +46,13 @@ def list_terms_endpoint(
 def search_terms_endpoint(
     q: str = Query(..., min_length=1),
     language: Optional[str] = Query(None),
+    domain: Optional[str] = Query(None),
+    status: Optional[str] = Query(None),
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
     db: Session = Depends(get_db),
 ):
-    return search_terms(db, q=q, language=language, page=page, page_size=page_size)
+    return search_terms(db, q=q, language=language, domain=domain, status=status, page=page, page_size=page_size)
 
 
 @app.get("/api/terms/{term_id}", response_model=TermResponse)

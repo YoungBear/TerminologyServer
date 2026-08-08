@@ -112,6 +112,8 @@ def search_terms(
     db: Session,
     q: str,
     language: str | None = None,
+    domain: str | None = None,
+    status: str | None = None,
     page: int = 1,
     page_size: int = 20,
 ) -> dict:
@@ -120,6 +122,10 @@ def search_terms(
     )
     if language:
         query = query.filter(TermName.language == language)
+    if domain:
+        query = query.filter(Term.domain == domain)
+    if status:
+        query = query.filter(Term.status == status)
     query = query.distinct()
 
     total = query.count()

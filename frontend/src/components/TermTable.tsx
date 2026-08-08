@@ -6,6 +6,14 @@ import { STATUS_LABELS } from '../types/term';
 import { getTerms, deleteTerm, searchTerms } from '../api/terms';
 import type { ColumnsType } from 'antd/es/table';
 
+function getErrorDetail(err: unknown): string {
+  if (err && typeof err === 'object' && 'response' in err) {
+    const resp = (err as { response?: { data?: { detail?: string } } }).response;
+    if (resp?.data?.detail) return resp.data.detail;
+  }
+  return '操作失败';
+}
+
 interface TermTableProps {
   onEdit: (term: Term) => void;
   onCreate: () => void;
@@ -26,7 +34,7 @@ export default function TermTable({ onEdit, onCreate, refreshKey }: TermTablePro
     setLoading(true);
     try {
       if (searchText) {
-        const res = await searchTerms(searchText, filters.language, page, pageSize);
+        const res = await searchTerms(searchText, filters.language, filters.domain, filters.status, page, pageSize);
         setTerms(res.items);
         setTotal(res.total);
       } else {
@@ -34,8 +42,8 @@ export default function TermTable({ onEdit, onCreate, refreshKey }: TermTablePro
         setTerms(res.items);
         setTotal(res.total);
       }
-    } catch {
-      message.error('加载失败');
+    } catch (err) {
+      message.error(getErrorDetail(err));
     } finally {
       setLoading(false);
     }
@@ -50,8 +58,8 @@ export default function TermTable({ onEdit, onCreate, refreshKey }: TermTablePro
       await deleteTerm(id);
       message.success('已删除');
       fetchData();
-    } catch {
-      message.error('删除失败');
+    } catch (err) {
+      message.error(getErrorDetail(err));
     }
   };
 
@@ -97,6 +105,8 @@ export default function TermTable({ onEdit, onCreate, refreshKey }: TermTablePro
             allowClear
             style={{ width: 260 }}
             prefix={<SearchOutlined />}
+            value={searchText}
+            onChange={(e) => { setSearchText(e.target.value); if (!e.target.value) fetchData(); }}
             onSearch={(v) => { setSearchText(v); setPage(1); }}
           />
           <Select

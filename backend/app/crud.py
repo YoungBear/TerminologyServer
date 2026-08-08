@@ -53,7 +53,13 @@ def update_term(db: Session, term_id: int, data: dict) -> Term | None:
         raise ValueError(f"Name IDs {foreign_ids} do not belong to term {term_id}")
     ids_to_remove = existing_ids - request_ids
 
-    term.names = [n for n in term.names if n.id not in ids_to_remove]
+    # Remove deleted names first and flush to avoid UNIQUE constraint violations
+    # when an updated name reuses a (language, name_type) from a deleted name.
+    for n in list(term.names):
+        if n.id in ids_to_remove:
+            term.names.remove(n)
+    if ids_to_remove:
+        db.flush()
 
     for name_data in data["names"]:
         if name_data.get("id"):
